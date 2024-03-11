@@ -1,0 +1,13 @@
+{
+  "name": "y",
+  "version": "y",
+  "description": "watermark-app",
+  "main": "n",
+  "repository": "n",
+  "author": "Daw",
+  "license": "n",
+  "private": false,
+  "dependencies": {
+    "jimp": "0.6.4"
+  }
+}
