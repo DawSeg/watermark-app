@@ -1,5 +1,6 @@
 const Jimp = require('jimp');
 const inquirer = require('inquirer');
+const fs = require('fs');
 
 const addTextWatermarkToImage = async function (inputFile, outputFile, text) {
   const image = await Jimp.read(inputFile);
@@ -26,6 +27,11 @@ const addImageWatermarkToImage = async function (inputFile, outputFile, watermar
   await image.quality(100).writeAsync(outputFile);
 };
 
+const prepareOutputFilename = (filename) => {
+  const [name, ext] = filename.split('.');
+  return `${name}-with-watermark.${ext}`;
+};
+
 const startApp = async () => {
   // Ask if user is ready
   const answer = await inquirer.prompt([{
@@ -47,6 +53,11 @@ const startApp = async () => {
     choices: ['Text watermark', 'Image watermark'],
   }]);
 
+  if (!fs.existsSync(`./img/${options.inputImage}`)) {
+    console.log('Something went wrong... Try again');
+    process.exit();
+  }
+
   if (options.watermarkType === 'Text watermark') {
     const text = await inquirer.prompt([{
       name: 'value',
@@ -54,8 +65,10 @@ const startApp = async () => {
       message: 'Type your watermark text:',
     }]);
     options.watermarkText = text.value;
-    addTextWatermarkToImage('./img/' +
-      options.inputImage, './test-with-watermark.jpg', options.watermarkText)
+    addTextWatermarkToImage('./img/' + options.inputImage, './img/' +
+      prepareOutputFilename(options.inputImage), options.watermarkText);
+    console.log('Succes');
+    startApp();
   }
   else {
     const image = await inquirer.prompt([{
@@ -63,10 +76,17 @@ const startApp = async () => {
       type: 'input',
       message: 'Type your watermark name:',
       default: 'logo.png',
-    }]);
+    }])
     options.watermarkImage = image.filename;
-    addImageWatermarkToImage('./img/' +
-      options.inputImage, './test-with-watermark.jpg', './img/' + options.watermarkImage);
+
+    if (!fs.existsSync(`./img/${options.watermarkImage}`)) {
+      console.log('Something went wrong. Please try again.');
+      process.exit();
+    }
+
+    addImageWatermarkToImage('./img/' + options.inputImage, './img/' +
+      prepareOutputFilename(options.inputImage), './img/' + options.watermarkImage);
+      console.log('Succes');
   }
 }
 
